@@ -8,6 +8,19 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+async function main() {
+  const user = await prisma.user.findMany();
+  console.log(user);
+}
+
+main()
+  .catch((e) => {
+    throw e
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
+
 app.post("/usuarios", async (req, res) => {
   try {
     await prisma.user.create({
@@ -98,7 +111,13 @@ app.delete("/usuarios/:id", async (req, res) => {
   }
 });
 
-app.listen(3000, (erro) => {
+app.listen(process.env.PORT || 3000, (erro) => {
   if (erro) throw erro;
-  console.log(`App listening on port ${3000}`);
+  console.log(`App listening on port ${process.env.PORT || 3000}`);
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  console.log('Prisma client desconectado.');
+  process.exit(0);
 });
